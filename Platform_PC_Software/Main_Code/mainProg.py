@@ -6,9 +6,9 @@ from math import atan
 from kalman import kalman
 from positioning_algo import positions  
 import json
-import serial
+# import serial
 from multiprocessing import Process, Manager, freeze_support
-from serialCom import readSerialData, sendToSerial, serialAutoSend
+# from serialCom import readSerialData, sendToSerial, serialAutoSend
 import movements
 from robot import robot
 import paho.mqtt.client as mqtt #import the client1
@@ -50,7 +50,7 @@ dispHeight = 480
 
 # Settings section
 serialComEn = True
-ipCamEn = True
+ipCamEn = False
 kalmanEn = False
 flaskEn = False
 cv2WindowEn = True
@@ -236,7 +236,9 @@ def destinationCalculation(robots, broadcastPos, frame, client, sharedData):
 
 def camProcess(sharedData):
     # brocker ip address (this brokeris running inside our aws server)
+
     broker_address= "broker.mqttdashboard.com"
+    # broker_address= "broker.hivemq.com"
     print("creating new instance")
 
     # client Name
@@ -244,7 +246,7 @@ def camProcess(sharedData):
     client.on_message = on_message # attach function to callback
 
     print("connecting to broker")
-    client.connect(broker_address, 8000, 60) #connect to broker
+    client.connect(broker_address, 8000, 100) #connect to broker
     # starting the mqtt client loop
     client.loop_start() 
 
@@ -348,6 +350,7 @@ def camProcess(sharedData):
             
             view = cv2.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
             cv2.imshow('Cam', view)
+            
         ret, buffer = cv2.imencode('.jpg', frame)
         img = buffer.tobytes()
         sharedData[1] = img
@@ -391,20 +394,20 @@ if __name__ == '__main__':
     if flaskEn: 
         p2.start() 
 
-    # send data to the arduino
-    if serialComEn:
-        p3 = Process(target=serialAutoSend, args=(sharedData,))
+    # # send data to the arduino
+    # if serialComEn:
+    #     p3 = Process(target=serialAutoSend, args=(sharedData,))
     
-    if serialComEn:
-        p3.start()   
+    # if serialComEn:
+    #     p3.start()   
 
     
 
     p1.join()  
     if flaskEn: 
         p2.join() 
-    if serialComEn:
-        p3.join()
+    # if serialComEn:
+    #     p3.join()
     
 
 
